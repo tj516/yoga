@@ -135,6 +135,63 @@ def inFrame(lst):
     else:
         return False, []
 
+def count_repetitions(angles, criteria):
+    global repetition_count, down_position
+    """
+    Count repetitions based on the angles of body parts specified by the exercise criteria.
+    Args:
+    - angles: Dictionary of angles calculated for various joints.
+    - criteria: Dictionary containing the angle threshold and body part for the current exercise.
+    
+    Returns:
+    - repetition_count: Updated count of repetitions.
+    """
+    if criteria['body_part'] not in angles:
+        return repetition_count  # If the required body part is not in the angles, return current count.
+
+    angle = angles[criteria['body_part']]
+
+    if not down_position and isinstance(angle, (int, float)) and angle < criteria['angle_threshold']:
+        down_position = True  # Body is in the down position.
+    elif down_position and isinstance(angle, (int, float)) and angle > criteria['angle_threshold']:
+        repetition_count += 1  # Increment repetitions when moving from down to up.
+        down_position = False  # Reset down position for the next repetition.
+
+    return repetition_count
+
+def get_angles(pose_landmarks):
+    """
+    Calculate the angles for key joints (shoulder, hip, knee) based on the pose landmarks.
+    
+    Args:
+    - pose_landmarks: Pose landmarks obtained from MediaPipe Holistic model.
+    
+    Returns:
+    - Dictionary with calculated angles for each joint.
+    """
+    angles = {}
+    
+    if pose_landmarks:
+        # Example calculation for the shoulder, hip, and knee angles.
+        angles['shoulder'] = angle_between_points(
+            (pose_landmarks[11].x, pose_landmarks[11].y),  # Left shoulder
+            (pose_landmarks[13].x, pose_landmarks[13].y),  # Left elbow
+            (pose_landmarks[15].x, pose_landmarks[15].y)   # Left wrist
+        )
+        angles['hip'] = angle_between_points(
+            (pose_landmarks[23].x, pose_landmarks[23].y),  # Left hip
+            (pose_landmarks[25].x, pose_landmarks[25].y),  # Left knee
+            (pose_landmarks[27].x, pose_landmarks[27].y)   # Left ankle
+        )
+        angles['knee'] = angle_between_points(
+            (pose_landmarks[25].x, pose_landmarks[25].y),  # Left knee
+            (pose_landmarks[27].x, pose_landmarks[27].y),  # Left ankle
+            (pose_landmarks[29].x, pose_landmarks[29].y)   # Left foot
+        )
+    
+    return angles
+
+
 def compute_similarity_score(current_pose, reference_pose):
     global similarity_score  # Declare global variable
     # Calculate Euclidean distance between current_pose and reference_pose landmarks
@@ -144,8 +201,8 @@ def compute_similarity_score(current_pose, reference_pose):
     similarity_score = max(1, min(10, 10 * (1 - mean_distance)))  # Scale score to 1-10
     return similarity_score
 
-def get_average_similarity_score(similarity_scores):
-    # global similarity_scores
+def get_average_similarity_score():
+    global similarity_scores
     if not similarity_scores:
         return "N/A"
     return sum(similarity_scores) / len(similarity_scores)
@@ -388,6 +445,16 @@ def generate_frames(request, cap, pose_option='option_1'):
                     avg_similarity_score = get_average_similarity_score()
                     cv2.putText(frm, f"Similarity: {avg_similarity_score:.1f}/10", (100, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
+		    # Compute angles for joints and count repetitions
+                    angles = get_angles(res.pose_landmarks.landmark)
+                    repetition_count = count_repetitions(angles, exercise_criteria)
+
+                    # Display the repetition count on the top-left corner of the frame
+                    # Adjusted coordinates to (10, 50) for top-left placement
+                    cv2.putText(frm, f"Reps: {repetition_count}", (10, 50), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 3)
+
+
                     elapsed_time = time.time() - pose_start_time
                     pose_name = pred
                     if pose_name not in pose_durations:
@@ -427,7 +494,8 @@ def generate_frames(request, cap, pose_option='option_1'):
             frame += b"\n" + f"Similarity: {similarity_score:.1f}/10".encode()
 
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n'
+	       + f'Reps: {repetition_count}'.encode() + b'\r\n')
 
 #def start_socket(request):
 #    return JsonResponse({'success': 'started'}, status=200)
@@ -519,6 +587,16 @@ def generate_frames1(pose_option='option_1'):
                         avg_similarity_score = get_average_similarity_score()
                         cv2.putText(frm, f"Similarity: {avg_similarity_score:.1f}/10", (100, 300), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
+			# Compute angles for joints and count repetitions
+                        angles = get_angles(res.pose_landmarks.landmark)
+                        repetition_count = count_repetitions(angles, exercise_criteria)
+
+                    	# Display the repetition count on the top-left corner of the frame
+                    	# Adjusted coordinates to (10, 50) for top-left placement
+                        cv2.putText(frm, f"Reps: {repetition_count}", (10, 50), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 3)
+
+
                         elapsed_time = time.time() - pose_start_time
                         pose_name = pred
                         if pose_name not in pose_durations:
@@ -560,7 +638,8 @@ def generate_frames1(pose_option='option_1'):
                 logger.debug(f"Appending similarity score: {similarity_score_str}")
 
             yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n'
+		+ f'Reps: {repetition_count}'.encode() + b'\r\n')
         else:
             time.sleep(1)
 
@@ -624,6 +703,33 @@ def yoga_dashboard(request):
 def yoga_file(request):
     return render(request, 'yoga_file.html')
 
+def get_similarity_score1(request):
+    # Extract the pose option or other parameters if needed
+    pose_option = request.GET.get('pose_option', 'option_1')
+
+    # Calculate the similarity score here
+    similarity_score1 = get_average_similarity_score()  # Replace with actual calculation
+
+    # Convert the similarity score from 0-10 to 0-100
+    similarity_score = similarity_score1 * 10
+
+    # Ensure the score is within 0-100 range
+    similarity_score = max(0, min(100, similarity_score))
+
+    # Determine the feedback message based on the similarity score
+    if similarity_score < 50:
+        feedback_message = "Try to correct the pose"
+    elif 50 <= similarity_score < 70:
+        feedback_message = "Good, keep it up"
+    elif 70 <= similarity_score < 90:
+        feedback_message = "You are doing great"
+    else:
+        feedback_message = "Superb, you have done the pose correctly"
+
+    # Return the similarity score as JSON
+    return JsonResponse({'similarity_score': similarity_score, 'feedback_message': feedback_message})
+
+
 # View to return similarity score
 @csrf_exempt
 def get_similarity_score(request):
@@ -648,8 +754,7 @@ def generate_report_summary(pose_data, avg_similarity_score, avg_angles, total_t
 
 @csrf_exempt
 def generate_report(request):
-    global similarity_scores
-    avg_similarity_score = get_average_similarity_score(similarity_scores)
+    avg_similarity_score = get_average_similarity_score()
     avg_angles = get_average_angles()
     total_time = sum(pose_duration_thresholds)
 
@@ -665,7 +770,7 @@ def generate_report(request):
     frame1 = Frame(doc.leftMargin, doc.bottomMargin + 0.5 * inch, doc.width, doc.height - 1.5 * inch, id='frame1')
 
     def add_background(canvas, doc):
-        bg_image_path = '/home/shtlp_0174/my_learning/Yoga_Code/myapp/bg.jpg'
+        bg_image_path = '/root/projectdi/myapp/bg.jpg'
         bg_image = PILImage.open(bg_image_path)
         canvas.drawImage(bg_image_path, 0, 0, width=A4[0], height=A4[1], mask='auto')
 

@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Pose Classification Dashboard - Live Feed</title>
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body {
+            height: 100vh;
+            background-image: url("{% static 'img/dashboard.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        label {
+            color: hsl(260, 16%, 20%);
+        }
+
+        input::placeholder {
+            color: hsl(260, 16%, 35%);
+        }
+
+        #video_frame {
+            display: none;
+        }
+
+        .video-placeholder {
+            display: block;
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header" id="header">
+        <nav class="nav container">
+            <a href="{% url 'home' %}" class="nav__logo">Yoga</a>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="{% url 'home' %}" class="nav__link active-link">Home</a></li>
+                    <li class="nav__item"><a href="{% url 'yoga_live' %}" class="nav__link">Health</a></li>
+                    <li class="nav__item"><a href="{% url 'yoga_file' %}" class="nav__link">Routine</a></li>
+                    <li class="nav__item"><a href="{% url 'follow' %}" class="nav__link">Follow</a></li>
+                </ul>
+                <div class="nav__close" id="nav-close"><i class="ri-close-line"></i></div>
+            </div>
+            <div class="nav__buttons">
+                <i class="ri-moon-line change-theme" id="theme-button"></i>
+                <div class="nav__toggle" id="nav-toggle"><i class="ri-apps-2-line"></i></div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard container">
+        <h1 class="section__title">Yoga Pose Classification Dashboard - Live Feed</h1>
+
+        <div class="container grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <label for="pose_option" class="join__title">Select Pose:</label>
+                <select id="pose_option" class="join__input">
+                    <option value="option_1">Bikram Yoga</option>
+                    <option value="option_2">Ashtanga Yoga</option>
+                </select>
+            </div>
+            <div class="grid" style="gap: 1rem;">
+                <button id="start_live_feed" class="button">Start Live Feed</button>
+                <button id="stop_feed" class="button">Stop Feed</button>
+            </div>
+        </div>
+
+        <div class="timer" id="timer" style="text-align: center; margin-top: 1.5rem;">Exercise Time: 00:00</div>
+
+        <div id="video_container" style="margin-top: 2rem; display: flex;">
+            <div id="video_toolbox" style="margin-top: 2rem;">
+                <div id="placeholder" class="video-placeholder">
+                    <p>Select a live feed and start playing it.</p>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <img id="video_frame" alt="Video Frame" class="home__img">
+            </div>
+            <div style="flex: 1;">
+                <video id="tutorial_video" src="{% static 'videos/tutorial.mp4' %}" class="home__img" controls style="width: 100%; max-width: 100%;"></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var videoElement = document.getElementById('video_frame');
+            var tutorialVideoElement = document.getElementById('tutorial_video');
+            var placeholderElement = document.getElementById('placeholder');
+            var videoContainer = document.getElementById('video_container');
+            var timerElement = document.getElementById('timer');
+            var timerInterval;
+            var totalSeconds = 0;
+            var isRecording = false;
+            var frames = [];
+    
+            function startTimer() {
+                clearInterval(timerInterval);
+                totalSeconds = 0;
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            function updateTimer() {
+                var minutes = Math.floor(totalSeconds / 60);
+                var seconds = totalSeconds % 60;
+                timerElement.textContent = "Exercise Time: " + padNumber(minutes) + ":" + padNumber(seconds);
+                totalSeconds++;
+                if (isRecording) {
+                    frames.push(videoElement.src);
+                }
+            }
+
+            function padNumber(number) {
+                return number.toString().padStart(2, '0');
+            }
+
+            function updateVideoFrameSource() {
+                var videoFrame = document.getElementById('video_frame');
+                var poseOption = $('#pose_option').find(":selected").val();
+                videoFrame.src = "{% url 'video_feed' %}?capture_type=live&pose_option=" + poseOption;
+
+                if (poseOption === "option_1") {
+                    tutorialVideoElement.src = "{% static 'videos/tutorial_1.mp4' %}";
+                } else if (poseOption === "option_2") {
+                    tutorialVideoElement.src = "{% static 'videos/tutorial_2.mp4' %}";
+                }
+            }
+
+            updateVideoFrameSource();
+
+            $('#pose_option').change(function () {
+                updateVideoFrameSource();
+            });
+
+            $('#start_live_feed').click(function () {
+                startTimer();
+                videoContainer.classList.add('loading');
+                placeholderElement.style.display = "none";
+                videoElement.style.display = "block";
+    
+                var videoFeedUrl = "{% url 'video_feed' %}?capture_type=live&pose_option=" + $('#pose_option').find(":selected").val();
+                console.log("Video Feed URL:", videoFeedUrl);
+
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    console.log("Webcam Stream:", stream);
+                    videoElement.srcObject = stream;
+                    videoElement.onloadedmetadata = function(e) {
+                        videoElement.play();
+                        tutorialVideoElement.play();
+                        videoContainer.classList.remove('loading');
+                    };
+                });
+            });
+
+            $('#stop_feed').click(function () {
+                clearInterval(timerInterval);
+                totalSeconds = 0;
+                updateTimer();
+                videoElement.src = "{% static 'img/blank.jpg' %}";
+                videoElement.style.display = "none";
+                placeholderElement.style.display = "block";
+                tutorialVideoElement.pause();
+            });
+        });
+    </script>
+</body>
+
+</html>

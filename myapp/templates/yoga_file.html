@@ -1,0 +1,713 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Pose Classification Dashboard</title>
+
+    <!-- Link to styles.css for consistent styling -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <!-- Font Awesome CSS for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Add inline CSS for background image and text color adjustments -->
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: var(--body-font);
+            line-height: 1.6;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        body {
+            background-image: url("{% static 'img/dashboard.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: var(--body-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: var(--z-fixed);
+            width: 100%;
+            transition: background 0.4s;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav__logo {
+            font-size: var(--h2-font-size);
+            font-family: var(--second-font);
+            font-weight: var(--font-medium);
+            background: var(--gradient-color);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav__menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav__list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .nav__item {
+            margin-right: 10px;
+        }
+
+        .nav__link {
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav__link:hover {
+            background-color: var(--first-color-light);
+        }
+
+        .nav__buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .change-theme {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--title-color);
+            transition: color 0.3s ease;
+        }
+
+        .change-theme:hover {
+            color: var(--text-color-light);
+        }
+
+        .nav__toggle {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--title-color);
+            transition: color 0.3s ease;
+        }
+
+        .nav__toggle:hover {
+            color: var(--text-color-light);
+        }
+
+        .section__title {
+            font-size: var(--bigger-font-size);
+            font-family: var(--second-font);
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--first-color);
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .join__title {
+            font-size: var(--small-font-size);
+            margin-bottom: 5px;
+        }
+
+        .join__input {
+            width: 100%;
+            padding: 10px;
+            font-size: var(--normal-font-size);
+            border: 1px solid var(--text-color-light);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            column-gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: var(--normal-font-size);
+            font-weight: var(--font-medium);
+            color: var(--white-color);
+            background: var(--gradient-color);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s, border 0.3s;
+        }
+
+        .button i {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .button:hover {
+            background: linear-gradient(75deg, var(--first-color) 12%, var(--second-color) 90%);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 12px 24px rgba(31, 38, 135, 0.37);
+            transform: translateY(-3px);
+        }
+
+        .button:hover i {
+            transform: translateX(0.25rem);
+        }
+
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .button--secondary {
+            background: var(--first-color-dark);
+            color: var(--white-color);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .button--secondary:hover {
+            background: var(--second-color);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 12px 24px rgba(31, 38, 135, 0.37);
+            transform: translateY(-3px);
+        }
+
+        .timer {
+            font-size: var(--small-font-size);
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--first-color-light);
+            border-radius: 5px;
+        }
+
+        .video-placeholder {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--container-color);
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard {
+            margin-top: 20px;
+            overflow: auto;
+        }
+
+        .faq-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-title {
+            font-size: var(--h1-font-size);
+            font-family: var(--second-font);
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--first-color);
+        }
+
+        .faq-item {
+            margin-bottom: 20px;
+        }
+
+        .faq-question {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .faq-question .toggle-icon {
+            float: right;
+        }
+
+        .faq-answer {
+            margin-top: 5px;
+            margin-left: 20px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--first-color-dark);
+            color: var(--text-color-light);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header" id="header">
+        <nav class="nav container">
+	    <a href="#" class="nav__logo">Yoga</a>
+
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item">
+                       <a href="{% url 'home' %}" class="nav__link active-link">Home</a>
+                    </li>
+                    <li class="nav__item">
+                       <a href="{% url 'yoga_file' %}" class="nav__link">Live Pose Check</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="{% url 'yoga_dashboard' %}" class="nav__link">Video Pose Evaluation</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="{% url 'follow' %}" class="nav__link">Follow</a>
+                    </li>
+                </ul>
+
+                <!-- Close button -->
+                <div class="nav__close" id="nav-close">
+                    <i class="ri-close-line"></i>
+                </div>
+            </div>
+
+            <div class="nav__buttons">
+                <!-- Theme change button -->
+                <i class="ri-moon-line change-theme" id="theme-button"></i>
+
+                <!-- Toggle button -->
+                <div class="nav__toggle" id="nav-toggle">
+                    <i class="ri-apps-2-line"></i>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="dashboard container">
+        <h1 class="section__title">Live Feed Pose Classification Dashboard</h1>
+
+        <div class="grid">
+            <!-- Pose selection -->
+            <div>
+                <label for="pose_option" class="join__title">Select Pose:</label>
+                <select id="pose_option" class="join__input">
+                    <option value="option_1">Bikram Yoga</option>
+                    <option value="option_2">Ashtanga Yoga</option>
+                    <option value="option_3">Squats</option>
+                    <option value="option_4">Plank</option>
+                    <option value="option_5">Push-Ups</option>
+                    <option value="option_6">Test</option>
+                    <option value="option_7">Test-1</option>
+		    <option value="option_8">Physiotherapy</option>
+                </select>
+            </div>
+
+            <!-- Video control buttons -->
+            <div class="grid">
+                <button id="start_live_feed" class="button">Start Live Feed</button>
+                <button id="stop_feed" class="button">Stop Feed</button>
+            </div>
+        </div>
+
+        <div class="timer" id="timer" style="text-align: center; margin-top: 20px;">Exercise Time: 00:00</div>
+
+        <div id="video_container" style="margin-top: 20px;">
+            <!-- Video placeholder -->
+            <div id="video_toolbox" style="margin-top: 20px;">
+                <div id="placeholder" class="video-placeholder">
+                    <p>Make sure you have given necessary permission to access the camera and click on Start Live Feed</p>
+                    <!-- You can add more controls or elements to this placeholder if needed -->
+                </div>
+            </div>
+
+            <div style="display: flex; margin-top: 20px;">
+                <!-- Video frame for user's video input -->
+                <div style="flex: 1;">
+                    <img id="video_frame" alt="" class="home__img" style="width: 100%; height: auto; display: block; object-fit: cover; border: none;">
+                    <video id="video_screen" hidden></video>
+                </div>
+                
+                <!-- Video frame for tutorial video -->
+                <div style="flex: 1;">
+                    <video id="tutorial_video" src="{% static 'videos/tutorial.mp4' %}" class="home__img" controls style="width: 100%; max-width: 100%;"></video>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-top: 20px;">
+            <button id="record_session" class="button">Record Session</button>
+	    <button id="download_report" class="button">Download Report</button>
+        </div>
+        
+        <div class="faq-section">
+            <h2 class="faq-title">FAQ Section</h2>
+            <div class="faq-item">
+                <p class="faq-question">How does the pose classification model work?<i class="fas fa-plus toggle-icon"></i></p>                
+                <div class="faq-answer">
+                    <p>Our pose classification model uses advanced machine learning algorithms to analyze your movements in real-time through your webcam. Based on the selected exercise, the model compares your posture to the tutorial video and provides feedback to help you improve.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">What equipment do I need to use this website?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>You only need a computer or mobile device with a webcam and an internet connection. Make sure you have enough space to perform the exercises safely.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is my webcam feed recorded or stored?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>No, your webcam feed is used solely for real-time analysis and is not recorded or stored. Your privacy and security are our top priorities.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Can I use this website if I'm a beginner?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>Absolutely! Our website caters to all fitness levels. We offer a variety of exercises and tutorials, from beginner to advanced levels, to ensure everyone can benefit.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">How accurate is the pose classification?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>Our model is designed to be highly accurate, but its effectiveness can depend on various factors such as lighting, camera quality, and how well you follow the tutorial. We continuously update our model to improve accuracy.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">What should I do if the model is not recognizing my poses correctly?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>Ensure your webcam is positioned correctly and that you are within the frame. Good lighting and a clear background can also help. If the problem persists, try reloading the page or contacting our support team for assistance.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Can I access the tutorial videos offline?<i class="fas fa-plus toggle-icon"></i></p>
+                <div class="faq-answer">
+                    <p>Currently, our tutorial videos are available for streaming only. However, you can download exercise guides and instructions to refer to offline.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Yoga Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+    var videoElement = document.getElementById('video_frame');
+    var videoE = document.getElementById('video_screen')
+    var tutorialVideoElement = document.getElementById('tutorial_video');
+    var placeholderElement = document.getElementById('placeholder');
+    var videoContainer = document.getElementById('video_container');
+    var timerElement = document.getElementById('timer');
+    var timerInterval;
+    var totalSeconds = 0;
+    var isRecording = false;
+    var isLiveFeedStarted = false;
+    var frames = [];
+
+    // Function to pad numbers with leading zero
+    function padNumber(number) {
+        return number.toString().padStart(2, '0');
+    }
+
+    function getCSRFToken() {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Function to update the video frame source
+    function updateVideoFrameSource() {
+        var poseOption = $('#pose_option').find(":selected").val();
+
+        // Update the tutorial video source based on the selected pose option
+        if (poseOption === "option_1") {
+            tutorialVideoElement.src = "{% static 'videos/tutorial_1.mp4' %}";
+        } 
+        else if (poseOption === "option_2") {
+            tutorialVideoElement.src = "{% static 'videos/tutorial_2.mp4' %}";
+        }
+        else if (poseOption === "option_3") {
+            tutorialVideoElement.src = "{% static 'videos/Squat.mp4' %}";
+        }
+        else if (poseOption === "option_4") {
+            tutorialVideoElement.src = "{% static 'videos/Plank.mp4' %}";
+        }
+        else if (poseOption === "option_5") {
+            tutorialVideoElement.src = "{% static 'videos/Push-Ups.mp4' %}";
+        }
+        else if (poseOption === "option_6") {
+            tutorialVideoElement.src = "{% static 'videos/Test.mp4' %}";
+        }
+        else if (poseOption === "option_7") {
+            tutorialVideoElement.src = "{% static 'videos/Test-1.mp4' %}";
+        }
+    }
+
+    updateVideoFrameSource();
+
+    // Function to start the timer
+    function startTimer() {
+        timerInterval = setInterval(function () {
+            totalSeconds++;
+            updateTimer();
+        }, 1000);
+    }
+
+    // Function to stop the timer
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    // Function to update the timer display
+    function updateTimer() {
+        var hours = Math.floor(totalSeconds / 3600);
+        var minutes = Math.floor((totalSeconds % 3600) / 60);
+        var seconds = totalSeconds % 60;
+
+        hours = hours < 10 ? '0' + hours : hours;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        document.getElementById('timer').textContent = 'Exercise Time: ' + hours + ':' + minutes + ':' + seconds;
+    }
+
+    // Function to start the live feed
+    $('#start_live_feed').click(function () {
+        if (isLiveFeedStarted) return; // Prevent starting again if already started
+
+        isLiveFeedStarted = true;
+        startTimer();
+        videoContainer.classList.add('loading');
+        placeholderElement.style.display = "none";
+        videoElement.style.display = "block";
+
+        // Access the user's webcam
+        let isStreaming = true;
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+            videoE.srcObject = stream;
+            videoE.onloadedmetadata = function (e) {
+                videoE.play();
+            };
+
+            // Connect to Django Channels WebSocket Consumer
+            // const socket = new WebSocket('wss://' + "yogix.ai" + '/ws/video_feed/');
+            const socket = new WebSocket('ws://' + 'localhost' + ':8000/ws/video_feed/');
+
+
+            socket.onopen = () => {
+                var width = 0;
+                var height = 0;
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+
+                while (width <= 0 || height <= 0) {
+                    const videoWidth = videoE.videoWidth;
+                    const videoHeight = videoE.videoHeight;
+                    width = videoWidth;
+                    height = videoHeight;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                
+                const sendFrame = () => {
+                    context.drawImage(videoE, 0, 0, width, height);
+                    
+                    canvas.toBlob(blob => {
+                        if (blob) {
+                            blob.arrayBuffer().then(arrayBuffer => {
+                                socket.send(arrayBuffer);  // Send frame data to WebSocket server
+                            }).catch(error => {
+                                console.error("Error converting blob to arrayBuffer:", error);
+                            });
+                        } else {
+                            console.error("Failed to create blob from canvas");
+                        }
+                    }, 'image/jpeg');
+                }
+
+                const intervalId = setInterval(sendFrame, 200); // Adjusted to send frames every 200ms
+
+                // Stop streaming on button click
+                document.getElementById('stop_feed').addEventListener('click', () => {
+                    clearInterval(intervalId);
+                    socket.close();
+                });
+            };
+
+            socket.onerror = function (error) {
+                console.error("WebSocket error: ", error);
+            };
+
+            socket.onclose = function (event) {
+                console.log("WebSocket connection closed: ", event);
+            };
+            
+
+            socket.onmessage = function(event) {
+                
+                // Convert the received frame (bytes) to a Blob
+                const arrayBuffer = event.data;
+                
+                
+                // Create a blob from the received ArrayBuffer (assumed to be image/jpeg)
+                const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+            
+                // Create a URL for the blob and set it as the source for the video or image element
+                const imageUrl = URL.createObjectURL(blob);
+                
+                videoElement.src = imageUrl;
+
+                setTimeout(() => {
+                    URL.revokeObjectURL(imageUrl);
+                }, 150);
+                
+            };
+
+            videoContainer.classList.remove('loading');
+        })
+        .catch(function (err) {
+            console.error("Error accessing webcam: ", err);
+            placeholderElement.style.display = "block";
+            videoElement.style.display = "none";
+        });
+
+    });
+
+    // Event handler for "Stop Feed" button
+    $('#stop_feed').click(function () {
+        if (!isLiveFeedStarted) return; // Prevent stopping if not started
+
+        isLiveFeedStarted = false;
+        stopTimer();
+        var stream = videoE.srcObject;
+        var tracks = stream.getTracks();
+
+        tracks.forEach(function (track) {
+            track.stop();
+        });
+
+        videoE.srcObject = null;
+
+        // Set the video source to a blank image and hide the video frame
+        videoElement.src = "{% static 'img/blank.jpg' %}";
+        videoElement.style.display = "none";
+        placeholderElement.style.display = "block";
+    });
+
+    // Event handler for FAQ questions
+    $('.faq-question').click(function () {
+        $(this).next('.faq-answer').slideToggle();
+        $(this).find('.toggle-icon').toggleClass('fa-plus fa-minus');
+    });
+
+    $('.faq-answer').hide();
+
+    // Event handler for "Record Session" button
+    $('#record_session').click(function () {
+        if (!isRecording) {
+            isRecording = true;
+            $('#record_session').text('Stop Recording');
+            var recordingInterval = setInterval(function () {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                var frame = canvas.toDataURL('image/webp', 1.0);
+                frames.push(frame);
+            }, 100);
+
+            setTimeout(function () {
+                clearInterval(recordingInterval);
+                isRecording = false;
+                $('#record_session').text('Record Session');
+                downloadSession(frames);
+            }, 10000);
+        } else {
+            isRecording = false;
+            $('#record_session').text('Record Session');
+            clearInterval(recordingInterval);
+            downloadSession(frames);
+        }
+    });
+
+    function downloadSession(frames) {
+        var blob = new Blob(frames, { type: 'video/webm' });
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'exercise_session.webm';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Event handler for pose option change
+    $('#pose_option').change(function () {
+        updateVideoFrameSource();
+    });
+
+    // Call updateVideoFrameSource on page load
+    updateVideoFrameSource();
+
+    // Event handler for "Download Report" button
+            $('#download_report').click(function () {
+                window.location.href = "{% url 'generate_report' %}";
+            });
+
+	});
+    </script>
+</body>
+</html>

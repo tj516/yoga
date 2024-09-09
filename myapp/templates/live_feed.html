@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Feed & Tutorial Video</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            background-color: #000;
+        }
+
+        #live_feed,
+        #tutorial_video {
+            width: 50%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #live_feed {
+            background-color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Live feed from user's device -->
+    <video id="live_feed" autoplay></video>
+
+    <!-- Tutorial video -->
+    <video id="tutorial_video" controls></video>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get selected pose from query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const poseOption = urlParams.get('pose_option');
+
+            // Set the tutorial video source based on the selected pose
+            const tutorialVideoElement = document.getElementById('tutorial_video');
+
+            if (poseOption === "option_1") {
+                tutorialVideoElement.src = "{% static 'videos/tutorial_1.mp4' %}";
+            } else if (poseOption === "option_2") {
+                tutorialVideoElement.src = "{% static 'videos/tutorial_2.mp4' %}";
+            } else if (poseOption === "option_3") {
+                tutorialVideoElement.src = "{% static 'videos/Squat.mp4' %}";
+            } else if (poseOption === "option_4") {
+                tutorialVideoElement.src = "{% static 'videos/Plank.mp4' %}";
+            } else if (poseOption === "option_5") {
+                tutorialVideoElement.src = "{% static 'videos/Push-Ups.mp4' %}";
+            } else if (poseOption === "option_6") {
+                tutorialVideoElement.src = "{% static 'videos/Test.mp4' %}";
+            } else if (poseOption === "option_7") {
+                tutorialVideoElement.src = "{% static 'videos/Test-1.mp4' %}";
+            }
+
+            // Access the user's webcam and display it in the video element
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const liveFeedElement = document.getElementById('live_feed');
+                    liveFeedElement.srcObject = stream;
+                    liveFeedElement.play();
+                })
+                .catch(function (err) {
+                    console.error("Error accessing webcam: ", err);
+                    alert("Could not access the webcam. Please allow access and try again.");
+                });
+        });
+    </script>
+</body>
+
+</html>

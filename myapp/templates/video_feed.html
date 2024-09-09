@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Pose Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        .video-container {
+            width: 640px;
+            height: 480px;
+            margin: 0 auto;
+            background: #000;
+            border: 1px solid #ccc;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yoga Pose Detection</h1>
+        <div class="video-container">
+            <img id="video" src="/video_feed/?stream=true" alt="Video Feed">
+        </div>
+    </div>
+</body>
+</html>

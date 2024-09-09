@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Pose Classification Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/scrollreveal/4.0.9/scrollreveal.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Particle Background */
+        #particles-js {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Set z-index behind the main content */
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            width: 80%;
+            max-width: 900px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            z-index: 1; /* To stay above the particle background */
+        }
+
+        /* Typography */
+        h1 {
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Containers and Controls */
+        .container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Styling inputs, buttons and images */
+        select, input {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            outline: none;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        input:focus, select:focus {
+            border-color: #007acc;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #2d8fb0;
+            color: #fff;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #21697e;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Video Container */
+        #video_container {
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #video_frame {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Timer */
+        .timer {
+            font-size: 1.2rem;
+            color: #555;
+            text-align: center;
+        }
+
+        /* Suggestions Container */
+        .suggestions {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            font-size: 1rem;
+            color: #333;
+            margin-top: 15px;
+        }
+
+        /* Scrollable Content */
+        .scrollable-content {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            margin-top: 15px;
+        }
+
+        /* Timestamps */
+        .timestamps {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Particle Background -->
+    <div id="particles-js"></div>
+
+    <!-- Dashboard container -->
+    <div class="dashboard">
+        <h1>Yoga Pose Classification Dashboard</h1>
+
+        <!-- Pose Selection and Live Feed Controls -->
+        <div class="container">
+            <label for="pose_option">Select Pose:</label>
+            <select id="pose_option">
+                <option value="option_1">Bikram Yoga</option>
+                <option value="option_2">Ashtanga Yoga</option>
+            </select>
+            <button id="live_feed">Start Live Feed</button>
+            <button id="stop_feed">Stop Feed</button>
+        </div>
+
+        <!-- Video Path and Playback Controls -->
+        <div class="container">
+            <label for="video_path">Enter Video Path:</label>
+            <input type="text" id="video_path" placeholder="Enter video URL">
+            <button id="play_video">Play Video</button>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer" id="timer">Exercise Time: 00:00</div>
+
+        <!-- Video Container -->
+        <div id="video_container">
+            <img id="video_frame" src="" alt="Video Frame" style="object-fit: cover;">
+        </div>
+
+        <!-- Suggestions -->
+        <div class="suggestions" id="suggestions">
+            <h3>Suggestions:</h3>
+            <ul id="suggestions_list">
+                <!-- Suggestions will be dynamically added here -->
+            </ul>
+        </div>
+
+        <!-- Scrollable Timestamps -->
+        <div class="scrollable-content">
+            <div class="timestamps">
+                <label for="timestamp">Timestamps:</label>
+                <input type="number" id="timestamp" placeholder="Enter timestamp (in seconds)">
+                <button id="set_timestamp">Set Timestamp</button>
+                <button id="go_to_timestamp">Go to Timestamp</button>
+            </div>
+        </div>
+
+        <!-- Record Session Button -->
+        <button id="record_session">Record Session</button>
+    </div>
+
+    <!-- Include jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- ScrollReveal Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/scrollreveal/4.0.9/scrollreveal.min.js"></script>
+
+    <!-- Particles.js Library -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    <!-- Script to handle functionality -->
+    <script>
+        $(document).ready(function() {
+            const videoElement = document.getElementById('video_frame');
+            const suggestionsList = document.getElementById('suggestions_list');
+            const timerElement = document.getElementById('timer');
+            let timerInterval;
+            let totalSeconds = 0;
+            let isRecording = false;
+            let frames = [];
+            let suggestions = [];
+
+            // Function to add suggestions to the suggestions list
+            function updateSuggestions(newSuggestions) {
+                suggestionsList.innerHTML = ''; // Clear existing suggestions
+                newSuggestions.forEach((suggestion) => {
+                    const li = document.createElement('li');
+                    li.textContent = suggestion;
+                    suggestionsList.appendChild(li);
+                });
+            }
+
+            $('#live_feed').click(function() {
+                startTimer();
+                videoElement.src = `/video_feed?capture_type=live&pose_option=${$('#pose_option').val()}`;
+            });
+
+            $('#stop_feed').click(function() {
+                clearInterval(timerInterval);
+                totalSeconds = 0;
+                updateTimer();
+                videoElement.src = '';
+            });
+
+            $('#play_video').click(function() {
+                const videoPath = $('#video_path').val();
+                if (videoPath) {
+                    startTimer();
+                    videoElement.src = `/video_feed?capture_type=video&video_path=${encodeURIComponent(videoPath)}&pose_option=${$('#pose_option').val()}`;
+                } else {
+                    alert('Please enter a valid video path.');
+                }
+            });
+
+            $('#set_timestamp').click(function() {
+                const timestamp = parseInt($('#timestamp').val());
+                if (!isNaN(timestamp)) {
+                    totalSeconds = timestamp;
+                    updateTimer();
+                } else {
+                    alert('Please enter a valid timestamp (in seconds).');
+                }
+            });
+
+            $('#go_to_timestamp').click(function() {
+                const timestamp = parseInt($('#timestamp').val());
+                if (!isNaN(timestamp)) {
+                    videoElement.currentTime = timestamp;
+                    totalSeconds = timestamp;
+                    updateTimer();
+                } else {
+                    alert('Please enter a valid timestamp (in seconds).');
+                }
+            });
+
+            $('#record_session').click(function() {
+                if (!isRecording) {
+                    frames = [];
+                    isRecording = true;
+                    $(this).text('Stop Recording');
+                } else {
+                    isRecording = false;
+                    $(this).text('Record Session');
+                    downloadSession();
+                }
+            });
+
+            function startTimer() {
+                clearInterval(timerInterval);
+                totalSeconds = 0;
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            function updateTimer() {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                timerElement.textContent = `Exercise Time: ${padNumber(minutes)}:${padNumber(seconds)}`;
+                totalSeconds++;
+                if (isRecording) {
+                    frames.push(videoElement.src);
+                }
+                // Assuming `suggestions` array is updated dynamically from the server
+                updateSuggestions(suggestions);
+            }
+
+            function padNumber(number) {
+                return number.toString().padStart(2, '0');
+            }
+
+            function downloadSession() {
+                const blob = new Blob(frames, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'exercise_session.webm';
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            // ScrollReveal Configuration
+            ScrollReveal().reveal('.container', {
+                origin: 'bottom',
+                distance: '50px',
+                duration: 800,
+                easing: 'ease-in-out',
+                delay: 100
+            });
+
+            ScrollReveal().reveal('.suggestions', {
+                origin: 'left',
+                distance: '50px',
+                duration: 800,
+                easing: 'ease-in-out',
+                delay: 100
+            });
+
+            ScrollReveal().reveal('.scrollable-content', {
+                origin: 'right',
+                distance: '50px',
+                duration: 800,
+                easing: 'ease-in-out',
+                delay: 100
+            });
+
+            // Initialize particles.js
+            particlesJS('particles-js', {
+                particles: {
+                    number: {
+                        value: 50,
+                        density: {
+                            enable: true,
+                            value_area: 800
+                        }
+                    },
+                    color: {
+                        value: '#ffffff'
+                    },
+                    shape: {
+                        type: 'circle',
+                        stroke: {
+                            width: 0,
+                            color: '#000000'
+                        }
+                    },
+                    opacity: {
+                        value: 0.5,
+                        random: false,
+                        anim: {
+                            enable: false,
+                            speed: 1,
+                            opacity_min: 0.1,
+                            sync: false
+                        }
+                    },
+                    size: {
+                        value: 4,
+                        random: true,
+                        anim: {
+                            enable: false,
+                            speed: 40,
+                            size_min: 0.1,
+                            sync: false
+                        }
+                    },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#ffffff',
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: true,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false,
+                        attract: {
+                            enable: false,
+                            rotateX: 600,
+                            rotateY: 1200
+                        }
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: {
+                            enable: true,
+                            mode: 'repulse'
+                        },
+                        onclick: {
+                            enable: true,
+                            mode: 'push'
+                        },
+                        resize: true
+                    },
+                    modes: {
+                        grab: {
+                            distance: 200,
+                            line_linked: {
+                                opacity: 1
+                            }
+                        },
+                        bubble: {
+                            distance: 400,
+                            size: 40,
+                            duration: 2,
+                            opacity: 8,
+                            speed: 3
+                        },
+                        repulse: {
+                            distance: 100
+                        },
+                        push: {
+                            particles_nb: 4
+                        },
+                        remove: {
+                            particles_nb: 2
+                        }
+                    }
+                },
+                retina_detect: true
+            });
+        });
+    </script>
+</body>
+
+</html>

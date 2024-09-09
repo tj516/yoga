@@ -7,7 +7,7 @@ SECRET_KEY = 'ABC'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['75.119.150.18','yogix.ai','localhost','127.0.0.1']
+ALLOWED_HOSTS = ['75.119.150.18','yogix.ai','localhost','127.0.0.1', '*']
 CSRF_TRUSTED_ORIGINS = ['https://yogix.ai', 'https://yogix.ai/routine/']
 
 # Define the maximum upload size in bytes (e.g., 50 MB)

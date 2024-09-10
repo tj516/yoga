@@ -770,7 +770,7 @@ def generate_report(request):
     frame1 = Frame(doc.leftMargin, doc.bottomMargin + 0.5 * inch, doc.width, doc.height - 1.5 * inch, id='frame1')
 
     def add_background(canvas, doc):
-        bg_image_path = '/root/projectdi/myapp/bg.jpg'
+        bg_image_path = '/myapp/bg.jpg'
         bg_image = PILImage.open(bg_image_path)
         canvas.drawImage(bg_image_path, 0, 0, width=A4[0], height=A4[1], mask='auto')
 

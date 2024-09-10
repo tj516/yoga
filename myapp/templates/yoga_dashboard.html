@@ -645,6 +645,7 @@
                     });
 
                     const result = await response.json();
+                    console.log(response);
                     if (response.ok) {
                         uploadMessageElement.style.display = 'none'; // Hide the uplaod message
                         alert('Video uploaded successfully: ' + result.file_path + 'Click OK to proceed further');

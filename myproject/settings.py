@@ -8,7 +8,7 @@ SECRET_KEY = 'ABC'
 DEBUG = True
 
 ALLOWED_HOSTS = ['75.119.150.18','yogix.ai','localhost','127.0.0.1', '*']
-CSRF_TRUSTED_ORIGINS = ['https://yogix.ai', 'https://yogix.ai/routine/']
+CSRF_TRUSTED_ORIGINS = ['https://yogix.ai', 'https://yogix.ai/routine/','https://yogix.xpponet.in',]
 
 # Define the maximum upload size in bytes (e.g., 50 MB)
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
@@ -48,6 +48,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "https://www.yogix.ai",
     "https://yogix.ai",
+    "https://yogix.xpponet.in"
 ]
 
 

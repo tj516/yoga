@@ -117,7 +117,7 @@ class VideoFeedConsumer(AsyncWebsocketConsumer):
 
                         lst = np.array(lst).reshape(1, -1)
 
-                        model_data = models['option_1']
+                        model_data = models['option_8']
                         model = model_data["model"]
                         labels = model_data["labels"]
 

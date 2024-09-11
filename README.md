@@ -273,3 +273,8 @@ sudo systemctl restart nginx
 sudo systemctl status ngin
 ```
 
+
+### Daphne Sock file
+
+![alt text](image.png)
+

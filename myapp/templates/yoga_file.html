@@ -236,6 +236,57 @@
             overflow: auto;
         }
 
+	        /* Similarity Bar Styles */
+        #similarity_bar_container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #similarity_bar {
+            width: 30px;
+            height: 300px;
+            background-color: lightgray;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        #similarity_fill {
+            width: 100%;
+            height: 0%;
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(to top, red 0%, yellow 50%, green 100%);
+            border-radius: 5px;
+        }
+
+        #similarity_score {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgb(18, 13, 13);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        #pose-feedback {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #f1f1f1;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-size: 18px;
+        color: #333;
+        text-align: center; /* Centers the text */
+        width: 300px;
+    }
+
         .faq-section {
             margin-top: 40px;
             padding: 20px;
@@ -299,7 +350,7 @@
                         <a href="{% url 'yoga_dashboard' %}" class="nav__link">Video Pose Evaluation</a>
                     </li>
                     <li class="nav__item">
-                        <a href="{% url 'follow' %}" class="nav__link">Follow</a>
+                        <a href="{% url 'about' %}" class="nav__link">About</a>
                     </li>
                 </ul>
 
@@ -349,6 +400,11 @@
 
         <div class="timer" id="timer" style="text-align: center; margin-top: 20px;">Exercise Time: 00:00</div>
 
+	<div id="feedback-box" style="border: 1px solid #ddd; padding: 10px; margin-top: 20px;">
+                <h4 style="text-align: center;">Pose Feedback</h4>
+                <p id="feedback-message" style="text-align: center;">Start the pose to see feedback.</p>
+            </div>
+
         <div id="video_container" style="margin-top: 20px;">
             <!-- Video placeholder -->
             <div id="video_toolbox" style="margin-top: 20px;">
@@ -365,6 +421,14 @@
                     <video id="video_screen" hidden></video>
                 </div>
                 
+		<!-- Similarity Score Bar (added this div for the progress bar) -->
+                <div id="similarity_bar_container" style="width: 50px; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div id="similarity_bar" style="width: 30px; height: 300px; background-color: lightgray; position: relative;">
+                        <div id="similarity_fill" style="background-color: green; width: 100%; height: 0%; position: absolute; bottom: 0;"></div>
+                    </div>
+                    <span id="similarity_score" style="position: absolute; top: -20px; font-weight: bold;">0%</span>
+                </div>
+
                 <!-- Video frame for tutorial video -->
                 <div style="flex: 1;">
                     <video id="tutorial_video" src="{% static 'videos/tutorial.mp4' %}" class="home__img" controls style="width: 100%; max-width: 100%;"></video>
@@ -442,6 +506,13 @@
     var isRecording = false;
     var isLiveFeedStarted = false;
     var frames = [];
+    var similarityInterval; 
+
+    // Hide the similarity bar initially
+    $('#similarity_bar').hide();
+
+    // Hide the similarity bar container initially
+    $('#similarity_bar_container').hide();
 
     // Function to pad numbers with leading zero
     function padNumber(number) {
@@ -462,6 +533,59 @@
         }
         return cookieValue;
     }
+
+                 // Function to update similarity bar
+            function updateSimilarityBar(similarityScore) {
+                // Ensure similarityScore is between 0 and 100
+                similarityScore = Math.max(0, Math.min(100, similarityScore));
+
+                // Update the height of the fill and the percentage text
+                var fillHeight = similarityScore + "%";
+                $('#similarity_fill').css('height', fillHeight);
+                $('#similarity_score').text(similarityScore + "%");
+
+                // Format the percentage to two decimal places and display inside the bar
+                similarityScore.innerText = formattedPercentage.toFixed(2) + '%';
+            }
+
+            function fetchSimilarityScore() {
+                const url = "{% url 'similarity_score' %}?pose_option=" + $('#pose_option').val();
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Assuming data.similarity_score contains the similarity score
+                        if (data.similarity_score !== undefined) {
+                            updateSimilarityBar(data.similarity_score);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching similarity score:', error);
+                    });
+            }
+
+            // Function to start fetching the similarity score periodically
+            function startSimilarityUpdates() {
+                similarityInterval = setInterval(fetchSimilarityScore, 1000);  // Fetch similarity every second
+            }
+
+            // Function to stop similarity score updates
+            function stopSimilarityUpdates() {
+                clearInterval(similarityInterval);
+            }
+
+     function updateFeedback() {
+                fetch('/get_similarity_score1?pose_option=option_1')
+                    .then(response => response.json())
+                    .then(data => {
+                        const feedbackMessage = data.feedback_message;
+                        document.getElementById('feedback-message').innerText = feedbackMessage;
+                    })
+                    .catch(error => console.error('Error fetching similarity score:', error));
+            }
+
+            // Call the function periodically to update the feedback
+            setInterval(updateFeedback, 2000);  // Update every 2 seconds
 
     // Function to update the video frame source
     function updateVideoFrameSource() {
@@ -541,8 +665,6 @@
 
             // Connect to Django Channels WebSocket Consumer
             const socket = new WebSocket('wss://' + "yogix.ai" + '/ws/video_feed/');
-            // const socket = new WebSocket('ws://' + 'localhost' + ':8000/ws/video_feed/');
-
 
             socket.onopen = () => {
                 var width = 0;
@@ -622,6 +744,14 @@
             placeholderElement.style.display = "block";
             videoElement.style.display = "none";
         });
+	
+	// Show the similarity bar and start updating it
+        $('#similarity_bar').show();
+        startSimilarityUpdates();
+
+	// Show the similarity bar container and start updating it
+        $('#similarity_bar_container').show();
+        startSimilarityUpdates();
 
     });
 
@@ -641,9 +771,17 @@
         videoE.srcObject = null;
 
         // Set the video source to a blank image and hide the video frame
-        videoElement.src = "{% static 'img/blank.jpg' %}";
+        videoElement.src = "{% static 'img/blank.png' %}";
         videoElement.style.display = "none";
         placeholderElement.style.display = "block";
+
+	// Hide the similarity bar and stop updating it
+        $('#similarity_bar').hide();
+        stopSimilarityUpdates();
+
+	// Hide the similarity bar container and stop updating it
+        $('#similarity_bar_container').hide();
+        stopSimilarityUpdates();
     });
 
     // Event handler for FAQ questions

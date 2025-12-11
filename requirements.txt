@@ -153,7 +153,7 @@ Twisted==24.7.0
 txaio==23.1.1
 typing_extensions==4.6.3
 tzdata==2023.3
-urllib3==1.26.16
+urllib3==2.6.0
 websockets==11.0.3
 Werkzeug==2.3.6
 whitenoise==6.7.0
